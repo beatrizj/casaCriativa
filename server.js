@@ -2,39 +2,13 @@ const express = require('express')
 const server = express()
 const nunjucks = require('nunjucks') //permite usar variáveis no html
 
-const ideas = [
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729007.svg",
-        title: "Cursos de Programação",
-        category: "Estudo",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur modi totam praesentium veritatis recusandae reiciendis quisquam amet aspernatur vel commodi quod quam, qui at tempora quos dolorum reprehenderit beatae dolore.",
-        url: "#"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729005.svg",
-        title: "Exercicíos",
-        category: "Saúde",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur modi totam praesentium veritatis recusandae reiciendis quisquam amet aspernatur vel commodi quod quam, qui at tempora quos dolorum reprehenderit beatae dolore.",
-        url: "#"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729027.svg",
-        title: "Meditação",
-        category: "Mentalidade",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur modi totam praesentium veritatis recusandae reiciendis quisquam amet aspernatur vel commodi quod quam, qui at tempora quos dolorum reprehenderit beatae dolore.",
-        url: "#"
-    },
-    {
-        img: "https://image.flaticon.com/icons/svg/2729/2729032.svg",
-        title: "Karaokê",
-        category: "Diversão em família",
-        description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Consectetur modi totam praesentium veritatis recusandae reiciendis quisquam amet aspernatur vel commodi quod quam, qui at tempora quos dolorum reprehenderit beatae dolore.",
-        url: "#"
-    }
-]
+const db = require('./db')
 
 //configurar arquivos estáticos (scripts, css, imagens)
 server.use(express.static("public"))
+
+//habilitar uso do req.body
+server.use(express.urlencoded({ extended: true }))
 
 //o primeiro parâmetro é a pasta onde está o html
 nunjucks.configure("views", {
@@ -43,21 +17,64 @@ nunjucks.configure("views", {
 })
 
 server.get("/", function(req, res) {
-    const reversedIdeas = [...ideas].reverse()
-    let lastIdeas = []
-    for (idea of reversedIdeas) {
-        if (lastIdeas.length < 2) {
-            lastIdeas.push(idea)
+    db.all(`SELECT * FROM ideas`, function(err, rows) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
         }
-    }
+        
+        const reversedIdeas = [...rows].reverse()
+        let lastIdeas = []
+        for (idea of reversedIdeas) {
+            if (lastIdeas.length < 2) {
+                lastIdeas.push(idea)
+            }
+        }
 
-    return res.render("index.html", { ideas: lastIdeas })
+        return res.render("index.html", { ideas: lastIdeas })
+    })    
 })
 
 server.get("/ideas", function(req, res) {
-    const reversedIdeas = [...ideas].reverse()
 
-    return res.render("ideas.html", { ideas: reversedIdeas })
+    db.all(`SELECT * FROM ideas`, function(err, rows) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
+        }
+
+        const reversedIdeas = [...rows].reverse()
+
+        return res.render("ideas.html", { ideas: reversedIdeas })
+    })
+})
+
+server.post("/", function(req, res) {
+    const query = `
+        INSERT INTO ideas (
+            image,
+            title,
+            category,
+            description,
+            link
+        ) VALUES (?, ?, ?, ?, ?);
+    `
+    const values = [
+        req.body.image,
+        req.body.title,
+        req.body.category,
+        req.body.description,
+        req.body.link
+    ]
+
+    db.run(query, values, function(err) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
+        }
+
+        return res.redirect("/ideas")
+    })
 })
 
 server.listen(3000)
