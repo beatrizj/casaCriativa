@@ -28,7 +28,7 @@ a:hover {
     text-decoration: underline;
 }
 
-.button {              
+.button, #see-idea {              
     color: #ffffff;  
     background: #ff5e84;
     width: 150px;
@@ -43,9 +43,23 @@ a:hover {
     transition: 400ms;
 }
 
-.button:hover {
+#see-idea {
+    text-decoration: none;
+}
+
+.buttons-ideas {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;    
+}
+
+.button:hover, #see-idea:hover {
     text-decoration: none;
     background-color: #0984e3;
+}
+
+#delete {
+    font-size: 12px;
 }
 
 p, .description {
@@ -294,3 +308,5 @@ section#ideas .idea {
 section#title, section#ideas, footer {
     margin-top: 64px;
 }
+
+ 

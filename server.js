@@ -16,13 +16,13 @@ nunjucks.configure("views", {
     noCache: true
 })
 
-server.get("/", function(req, res) {
-    db.all(`SELECT * FROM ideas`, function(err, rows) {
+server.get("/", function (req, res) {
+    db.all(`SELECT * FROM ideas`, function (err, rows) {
         if (err) {
             console.log(err)
             return res.send("Erro no banco de dados")
         }
-        
+
         const reversedIdeas = [...rows].reverse()
         let lastIdeas = []
         for (idea of reversedIdeas) {
@@ -32,12 +32,12 @@ server.get("/", function(req, res) {
         }
 
         return res.render("index.html", { ideas: lastIdeas })
-    })    
+    })
 })
 
-server.get("/ideas", function(req, res) {
+server.get("/ideas", function (req, res) {
 
-    db.all(`SELECT * FROM ideas`, function(err, rows) {
+    db.all(`SELECT * FROM ideas`, function (err, rows) {
         if (err) {
             console.log(err)
             return res.send("Erro no banco de dados")
@@ -49,7 +49,7 @@ server.get("/ideas", function(req, res) {
     })
 })
 
-server.post("/", function(req, res) {
+server.post("/", function (req, res) {
     const query = `
         INSERT INTO ideas (
             image,
@@ -67,13 +67,27 @@ server.post("/", function(req, res) {
         req.body.link
     ]
 
-    db.run(query, values, function(err) {
+    db.run(query, values, function (err) {
         if (err) {
             console.log(err)
             return res.send("Erro no banco de dados")
         }
 
         return res.redirect("/ideas")
+    })
+})
+
+
+server.delete("/ideas", function (req, res) {
+    const id = req.body.id
+
+    db.run(`DELETE FROM ideas WHERE id = ?`, [id], function (err) {
+        if (err) {
+            console.log(err)
+            return res.send("Erro no banco de dados")
+        }
+
+        return res.redirect("/")
     })
 })
 
